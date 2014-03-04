@@ -79,6 +79,11 @@ class CommonController extends \PaymentMethodController {
 function configuration_form(array $form, array &$form_state) {
   $controller_data = $form_state['payment_method']->controller_data;
 
+  $library = libraries_detect('paymill-php');
+  if (empty($library['installed'])) {
+    drupal_set_message($library['error message'], 'error', FALSE);
+  }
+
   $form['api_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Paymill API key'),

@@ -6,4 +6,4 @@ dependencies[] = payment
 dependencies[] = payment_forms
 dependencies[] = psr0
 dependencies[] = webform_component_paymethod_select
-
+dependencies[] = libraries

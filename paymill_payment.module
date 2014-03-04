@@ -8,6 +8,27 @@ function paymill_payment_payment_method_controller_info() {
 }
 
 /**
+* Implements hook_libraries_info().
+*
+* for paymills php wrapper library.
+*/
+function paymill_payment_libraries_info() {
+  $libraries['paymill-php'] = array(
+    'name' => 'Paymill',
+    'vendor url' => 'https://www.paymill.com/',
+    'download url' => 'https://github.com/paymill/paymill-php',
+    'version' => '3.0.2',
+    'path' => 'lib/Paymill',
+    'files' => array(
+      'php' => array(
+        'Request.php',
+      ),
+    ),
+  );
+  return $libraries;
+}
+
+/**
  * Implements hook_entity_load().
  */
 function paymill_payment_entity_load(array $entities, $entity_type) {
