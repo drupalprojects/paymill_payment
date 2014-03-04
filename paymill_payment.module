@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * Implements hook_payment_method_controller_info().
+ */
+function paymill_payment_payment_method_controller_info() {
+  return array('\Drupal\paymill_payment\CreditCardController');
+}
+
+/**
+ * Implements hook_entity_load().
+ */
+function paymill_payment_entity_load(array $entities, $entity_type) {
+  if ($entity_type == 'payment_method') {
+    \Drupal\paymill_payment\CommonController::load($entities);
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_ACTION().
+ */
+function paymill_payment_payment_method_insert(PaymentMethod $method) {
+  if ($method->controller instanceof \Drupal\paymill_payment\CommonController)
+    $method->controller->insert($method);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_ACTION().
+ */
+function paymill_payment_payment_method_update(PaymentMethod $method) {
+  if ($method->controller instanceof \Drupal\paymill_payment\CommonController)
+    $method->controller->update($method);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_ACTION().
+ */
+function paymill_payment_payment_method_delete($method) {
+  if ($method->controller instanceof \Drupal\paymill_payment\CommonController)
+    $method->controller->delete($method);
+}

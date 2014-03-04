@@ -1,0 +1,9 @@
+name = Paymill Payment methods
+description = Provides payment methods to transfer money using the payment provider www.paymill.com
+core = 7.x
+
+dependencies[] = payment
+dependencies[] = payment_forms
+dependencies[] = psr0
+dependencies[] = webform_component_paymethod_select
+
