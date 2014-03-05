@@ -13,6 +13,14 @@ class CommonController extends \PaymentMethodController {
     $this->payment_method_configuration_form_elements_callback = '\Drupal\paymill_payment\configuration_form';
   }
 
+  public function validate(\Payment $payment, \PaymentMethod $payment_method, $strict) {
+    // convert amount to cents.
+    foreach ($payment->line_items as $name => &$line_item) {
+      $line_item->amount = $line_item->amount * 100;
+    }
+  }
+
+
   /**
    * Helper for entity_load().
    */
