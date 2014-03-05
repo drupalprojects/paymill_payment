@@ -14,10 +14,10 @@
 function paymill_payment_schema() {
   $schema['paymill_payment_payment_method_controller'] = array(
     'fields' => array(
-      'api_key' => array(
+      'public_key' => array(
         'type' => 'text',
       ),
-      'unite_api_key' => array(
+      'private_key' => array(
         'type'     => 'text',
       ),
       'pmid' => array(

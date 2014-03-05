@@ -4,8 +4,8 @@ namespace Drupal\paymill_payment;
 
 class CommonController extends \PaymentMethodController {
   public $controller_data_defaults = array(
-    'api_key'       => '',
-    'unite_api_key' => '',
+    'private_key' => '',
+    'public_key'  => '',
   );
 
   public function __construct() {
@@ -84,12 +84,20 @@ function configuration_form(array $form, array &$form_state) {
     drupal_set_message($library['error message'], 'error', FALSE);
   }
 
-  $form['api_key'] = array(
+  $form['private_key'] = array(
     '#type' => 'textfield',
-    '#title' => t('Paymill API key'),
+    '#title' => t('Private key'),
     '#description' => t('Available from My Account / Settings / API keys on paymill.com'),
     '#required' => true,
-    '#default_value' => isset($controller_data['api_key']) ? $controller_data['api_key'] : '',
+    '#default_value' => isset($controller_data['private_key']) ? $controller_data['private_key'] : '',
+  );
+
+  $form['public_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Public key'),
+    '#description' => t('Available from My Account / Settings / API keys on paymill.com'),
+    '#required' => true,
+    '#default_value' => isset($controller_data['public_key']) ? $controller_data['public_key'] : '',
   );
 
   return $form;
@@ -101,6 +109,6 @@ function configuration_form(array $form, array &$form_state) {
  */
 function configuration_form_validate(array $element, array &$form_state) {
   $values = drupal_array_get_nested_value($form_state['values'], $element['#parents']);
-  dpm($values['api_key']);
-  $form_state['payment_method']->controller_data['api_key'] = $values['api_key'];
+  $form_state['payment_method']->controller_data['private_key'] = $values['private_key'];
+  $form_state['payment_method']->controller_data['public_key'] = $values['public_key'];
 }
