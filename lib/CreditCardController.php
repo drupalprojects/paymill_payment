@@ -9,6 +9,7 @@ class CreditCardController extends \Drupal\paymill_payment\CommonController {
     parent::__construct();
 
     $this->title = t('Paymill Credit Card');
-    $this->form = new \Drupal\payment_forms\CreditCardForm();
+    $this->form = new \Drupal\paymill_payment\PaymillCreditCardForm();
+  }
   }
 }
