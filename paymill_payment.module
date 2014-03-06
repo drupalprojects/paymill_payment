@@ -18,12 +18,9 @@ function paymill_payment_libraries_info() {
     'vendor url' => 'https://www.paymill.com/',
     'download url' => 'https://github.com/paymill/paymill-php',
     'version' => '3.0.2',
-    'path' => 'lib/Paymill',
-    'files' => array(
-      'php' => array(
-        'Request.php',
-      ),
-    ),
+    'xautoload' => function($api) {
+      $api->namespaceRoot('Paymill');
+    },
   );
   return $libraries;
 }
