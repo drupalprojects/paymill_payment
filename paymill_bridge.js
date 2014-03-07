@@ -32,8 +32,6 @@ jQuery(document).ready(function($) {
             exp_month:  getField('expiry_date').val().substr(0,2),
             exp_year:   '20' + getField('expiry_date').val().substr(2,3),
             cvc:        getField('secure_code').val(),
-            amount_int: settings.amount,
-            currency:   settings.currency_code,
             // cardholder:     $('.card-holdername').val()
         }, responseHandler);
     });
