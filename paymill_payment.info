@@ -5,5 +5,5 @@ core = 7.x
 dependencies[] = payment
 dependencies[] = payment_forms
 dependencies[] = xautoload
-dependencies[] = webform_component_paymethod_select
+dependencies[] = webform_paymethod_select
 dependencies[] = libraries
