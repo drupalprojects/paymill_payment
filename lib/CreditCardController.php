@@ -2,7 +2,7 @@
 
 namespace Drupal\paymill_payment;
 
-class CreditCardController extends \Drupal\paymill_payment\CommonController {
+class CreditCardController extends \Drupal\paymill_payment\CommonController implements \Drupal\webform_paymethod_select\PaymentRecurrentController {
   public function __construct() {
     parent::__construct();
 
