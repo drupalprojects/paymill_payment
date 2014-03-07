@@ -25,6 +25,6 @@ class CreditCardController extends \Drupal\paymill_payment\CommonController {
       ->setDescription(t('Donation to ' . variable_get('site_name',
             t('an unnamed site'))));
     $response = $request->create($transaction);
-    $payment->setStatus(new PaymentStatusItem(PAYMENT_STATUS_SUCCESS));
+    $payment->setStatus(new \PaymentStatusItem(PAYMENT_STATUS_SUCCESS));
   }
 }
