@@ -29,8 +29,8 @@ jQuery(document).ready(function($) {
         settings.$form = $(event.target);
         window.paymill.createToken({
             number:     getField('credit_card_number').val(),
-            exp_month:  getField('expiry_date').val().substr(0,2),
-            exp_year:   '20' + getField('expiry_date').val().substr(2,3),
+            exp_month:  String(getField('expiry_date][month').val()),
+            exp_year:   String(getField('expiry_date][year').val()),
             cvc:        getField('secure_code').val(),
             // cardholder:     $('.card-holdername').val()
         }, responseHandler);
