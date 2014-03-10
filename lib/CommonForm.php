@@ -15,8 +15,6 @@ class CommonForm {
       $payment->method->controller->name);
     $settings = array(
       'paymill_payment' => array(
-        'currency_code' => $payment->currency_code,
-        'amount' => $payment->totalAmount(0),
         'public_key' => $payment->method->controller_data['public_key'],
         'form_name' => 'submitted[paymethod_select][payment_method_all_forms]' .
           '[' . $controller_css_name . ']',
