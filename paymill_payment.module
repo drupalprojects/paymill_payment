@@ -4,7 +4,10 @@
  * Implements hook_payment_method_controller_info().
  */
 function paymill_payment_payment_method_controller_info() {
-  return array('\Drupal\paymill_payment\CreditCardController');
+  return array(
+    '\Drupal\paymill_payment\CreditCardController',
+    '\Drupal\paymill_payment\AccountController',
+  );
 }
 
 /**
