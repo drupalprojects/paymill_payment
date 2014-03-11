@@ -23,8 +23,6 @@ class CommonController extends \PaymentMethodController {
   public function execute(\Payment $payment) {
     $context = &$payment->context_data['context'];
     $api_key = $payment->method->controller_data['private_key'];
-    $token = $payment->method_data['paymill_payment_token'];
-    $request = new \Paymill\Request($api_key);
 
     switch ($context->value('donation_interval')) {
       case 'm': $interval = '1 MONTH'; break;
@@ -32,37 +30,62 @@ class CommonController extends \PaymentMethodController {
       default:  $interval = NULL; break;
     }
 
-    $client = $this->createClient(
-      $this->getName($context),
-      $context->value('email'),
-    );
+    try {
+      $this->token = $payment->method_data['paymill_payment_token'];
+      $this->request = new \Paymill\Request($api_key);
 
-    if (!$interval) {
-      $transaction = $this->createTransaction($token, $client, $payment);
-    } else {
-      $offer = $this->createOffer($payment, $interval);
-      $paymill_payment = $this->createPaymillPayment($token, $client);
-      $subscription = $this->createSubscription(
-        $client, $offer, $paymill_payment);
+      $client = $this->createClient(
+        $this->getName($context),
+        $context->value('email')
+      );
+
+      if (!$interval) {
+        $transaction = $this->createTransaction($client, $payment);
+      } else {
+        $offer = $this->createOffer($payment, $interval);
+        $paymill_payment = $this->createPaymillPayment($client);
+        $subscription = $this->createSubscription(
+          $client, $offer, $paymill_payment);
+      }
+      $payment->setStatus(new \PaymentStatusItem(PAYMENT_STATUS_SUCCESS));
     }
-    $payment->setStatus(new \PaymentStatusItem(PAYMENT_STATUS_SUCCESS));
+    catch(\Paymill\Services\PaymillException $e) {
+      $payment->setStatus(new \PaymentStatusItem(PAYMENT_STATUS_FAILED));
+      entity_save('payment', $payment);
+
+      $message = t(
+        '@method payment method encountered an error while trying ' .
+        'to contact the paymill server. The response code was "@response", ' .
+        'the status code "@status" and the error message "@message". ' .
+        '(pid: @pid, pmid: @pmid)',
+        array(
+          '@response' => $e->getResponseCode(),
+          '@status'   => $e->getStatusCode(),
+          '@message'  => $e->getErrorMessage(),
+          '@pid'      => $payment->pid,
+          '@pmid'     => $payment->method->pmid,
+          '@method'   => $payment->method->title_specific,
+        ));
+      throw new \PaymentException($message);
+
+    }
   }
 
   public function createClient($description, $email) {
     $client = new \Paymill\Models\Request\Client();
     $client->setDescription($description)
       ->setEmail($email);
-    return $request->create($client);
+    return $this->request->create($client);
   }
 
-  public function createTransaction($token, $client, $payment) {
+  public function createTransaction($client, $payment) {
     $transaction = new \Paymill\Models\Request\Transaction();
-    $transaction->setToken($token)
+    $transaction->setToken($this->token)
       ->setClient($client->getId())
       ->setAmount($payment->totalAmount(0))
       ->setCurrency($payment->currency_code)
       ->setDescription($payment->description);
-    return $request->create($transaction);
+    return $this->request->create($transaction);
   }
 
   public function createOffer($payment, $interval) {
@@ -71,14 +94,14 @@ class CommonController extends \PaymentMethodController {
       ->setCurrency($payment->currency_code)
       ->setInterval($interval)
       ->setName($payment->description);
-    return $request->create($offer);
+    return $this->request->create($offer);
   }
 
-  public function createPaymillPayment($token, $client) {
+  public function createPaymillPayment($client) {
       $paymill_payment = new \Paymill\Models\Request\Payment();
-      $paymill_payment->setToken($token)
+      $paymill_payment->setToken($this->token)
         ->setClient($client->getId());
-      return $request->create($paymill_payment);
+      return $this->request->create($paymill_payment);
   }
 
   public function createSubscription($client, $offer, $paymill_payment) {
@@ -86,7 +109,7 @@ class CommonController extends \PaymentMethodController {
       $subscription->setClient($client->getId())
         ->setOffer($offer->getId())
         ->setPayment($paymill_payment->getId());
-      return $request->create($subscription);
+      return $this->request->create($subscription);
   }
 
   public function getName($context) {
