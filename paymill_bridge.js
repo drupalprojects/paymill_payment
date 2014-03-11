@@ -16,7 +16,7 @@ jQuery(document).ready(function($) {
     var responseHandler = function(error, result) {
         if (error) {
             errorHandler(t('Paymill error: @error',
-                           {error: error.apierror});
+                           {'@error': error.apierror}));
         } else {
             settings.$form.find('.paymill-payment-token')
                 .val(result.token);
