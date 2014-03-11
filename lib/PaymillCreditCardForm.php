@@ -23,7 +23,7 @@ class PaymillCreditCardForm extends \Drupal\payment_forms\CreditCardForm {
   }
 
   public function validateForm(array &$element, array &$form_state) {
-    parent::validateForm($element, $form_state);
+    // Paymill takes care of the real validation, client-side.
     CommonForm::addTokenToPaymentMethodData($element, $form_state);
   }
 }
