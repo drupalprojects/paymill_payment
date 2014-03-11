@@ -11,15 +11,10 @@ namespace Drupal\paymill_payment;
 
 class CommonForm {
   public static function getSettings($payment) {
-    $controller_css_name = drupal_clean_css_identifier(
-      $payment->method->controller->name);
-    $settings = array(
+    return array(
       'paymill_payment' => array(
         'public_key' => $payment->method->controller_data['public_key'],
-        'form_name' => 'submitted[paymethod_select][payment_method_all_forms]' .
-          '[' . $controller_css_name . ']',
       ));
-    return $settings;
   }
 
   public static function addPaymillBridge(&$form) {
