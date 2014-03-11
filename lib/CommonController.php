@@ -26,51 +26,76 @@ class CommonController extends \PaymentMethodController {
     $token = $payment->method_data['paymill_payment_token'];
     $request = new \Paymill\Request($api_key);
 
-    $client = new \Paymill\Models\Request\Client();
-    $client->setEmail($context->value('email'));
-    $client->setDescription(trim(
-        $context->value('title') . ' ' .
-        $context->value('first_name') . ' ' .
-        $context->value('last_name')
-      ));
-    $client_id = $request->create($client)->getId();
-
     switch ($context->value('donation_interval')) {
       case 'm': $interval = '1 MONTH'; break;
       case 'y': $interval = '1 YEAR'; break;
       default:  $interval = NULL; break;
     }
 
+    $client = $this->createClient(
+      $this->getName($context),
+      $context->value('email'),
+    );
+
     if (!$interval) {
-      $transaction = new \Paymill\Models\Request\Transaction();
-      $transaction->setToken($token)
-        ->setClient($client_id)
-        ->setAmount($payment->totalAmount(0))
-        ->setCurrency($payment->currency_code)
-        ->setDescription($payment->description);
-      $transaction_id = $request->create($transaction)->getId();
+      $transaction = $this->createTransaction($token, $client, $payment);
     } else {
-      $offer = new \Paymill\Models\Request\Offer();
-      $offer->setAmount($payment->totalAmount(0))
-        ->setCurrency($payment->currency_code)
-        ->setInterval($interval)
-        ->setName($payment->description);
-      $offer_id= $request->create($offer)->getId();
-
-      $paymill_payment = new \Paymill\Models\Request\Payment();
-      $paymill_payment->setToken($token)
-        ->setClient($client_id);
-      $paymill_payment_id = $request->create($paymill_payment)->getId();
-
-      $subscription = new \Paymill\Models\Request\Subscription();
-      $subscription->setClient($client_id)
-        ->setOffer($offer_id)
-        ->setPayment($paymill_payment_id);
-      $subscription_id = $request->create($subscription)->getId();
+      $offer = $this->createOffer($payment, $interval);
+      $paymill_payment = $this->createPaymillPayment($token, $client);
+      $subscription = $this->createSubscription(
+        $client, $offer, $paymill_payment);
     }
     $payment->setStatus(new \PaymentStatusItem(PAYMENT_STATUS_SUCCESS));
   }
 
+  public function createClient($description, $email) {
+    $client = new \Paymill\Models\Request\Client();
+    $client->setDescription($description)
+      ->setEmail($email);
+    return $request->create($client);
+  }
+
+  public function createTransaction($token, $client, $payment) {
+    $transaction = new \Paymill\Models\Request\Transaction();
+    $transaction->setToken($token)
+      ->setClient($client->getId())
+      ->setAmount($payment->totalAmount(0))
+      ->setCurrency($payment->currency_code)
+      ->setDescription($payment->description);
+    return $request->create($transaction);
+  }
+
+  public function createOffer($payment, $interval) {
+    $offer = new \Paymill\Models\Request\Offer();
+    $offer->setAmount($payment->totalAmount(0))
+      ->setCurrency($payment->currency_code)
+      ->setInterval($interval)
+      ->setName($payment->description);
+    return $request->create($offer);
+  }
+
+  public function createPaymillPayment($token, $client) {
+      $paymill_payment = new \Paymill\Models\Request\Payment();
+      $paymill_payment->setToken($token)
+        ->setClient($client->getId());
+      return $request->create($paymill_payment);
+  }
+
+  public function createSubscription($client, $offer, $paymill_payment) {
+      $subscription = new \Paymill\Models\Request\Subscription();
+      $subscription->setClient($client->getId())
+        ->setOffer($offer->getId())
+        ->setPayment($paymill_payment->getId());
+      return $request->create($subscription);
+  }
+
+  public function getName($context) {
+    return trim(
+      $context->value('title') . ' ' .
+      $context->value('first_name') . ' ' .
+      $context->value('last_name')
+    );
+  }
 
   /**
    * Helper for entity_load().
