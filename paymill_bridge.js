@@ -5,26 +5,30 @@ Drupal.behaviors.paymill_payment = {
         self.settings = settings.paymill_payment;
         window.PAYMILL_PUBLIC_KEY = self.settings.public_key[0];
 
-        self.$form = $('.webform-client-form #payment-method-all-forms', context)
+        self.$form = $('.webform-client-form #payment-method-all-forms',
+                       context)
             .closest('form.webform-client-form', document);
         // the current webform page, does not contain a paymethod-selector.
         if (!self.$form.length) { return; }
         self.form_id = self.$form.attr('id');
-        var button = $('#edit-webform-ajax-submit-' + 
-                       self.$form.attr('id').split('-')[3], self.$form);
-        button.mousedown(self.submitHandler);
+        self.button_id = $('#edit-webform-ajax-submit'
+                           + self.form_id.split('-')[3]);
+        $(self.button_id).mousedown(self.submitHandler);
     },
 
     submitHandler: function(event) {
         var params;
         var self = Drupal.behaviors.paymill_payment;
-        var controller = $('#' + self.form_id + ' .payment-method-form:visible').attr('id');
+        var controller = $('#' + self.form_id +
+                           ' .payment-method-form:visible').attr('id');
 
         // Some non-paymill method was selected, do nothing on submit.
         if (controller !== 'Drupalpaymill-paymentCreditCardController'
             && controller !== 'Drupalpaymill-paymentAccountController') {
             return
         }
+
+        event.preventDefault();
         event.stopImmediatePropagation();
 
         // @TODO: Add a spinner here.
