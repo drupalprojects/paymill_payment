@@ -10,9 +10,9 @@ jQuery(document).ready(function($) {
               '</div></div>').insertAfter('#header');
         }
         $('<div class="messages error">' +
-          settings.error_messages[error] + '</div>')
+          settings.error_messages[error][0] + '</div>')
             .appendTo("#messages .section");
-        console.error(settings.error_messages[error]);
+        console.error(settings.error_messages[error][0]);
     };
 
     var responseHandler = function(error, result) {
