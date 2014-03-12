@@ -3,7 +3,7 @@ Drupal.behaviors.paymill_payment = {
     attach: function(context, settings) {
         var self = this;
         self.settings = settings.paymill_payment;
-        window.PAYMILL_PUBLIC_KEY = self.settings.public_key[0];
+        window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
 
         self.$form = $('#payment-method-all-forms')
             .closest('form.webform-client-form');
@@ -28,14 +28,15 @@ Drupal.behaviors.paymill_payment = {
             && controller !== 'Drupalpaymill-paymentAccountController') {
             return
         }
+	event.preventDefault();
         event.stopImmediatePropagation();
 
         // @TODO: Add a spinner here.
 
-        if (!self.validateAmount($('#webform-component-donation-amount ' +
+        /*if (!self.validateAmount($('#webform-component-donation-amount ' +
                                    ' input').val())) {
             return true;
-        }
+        }*/
 
         var getField = function(name) {
             if (name instanceof Array) { name = name.join(']['); }
@@ -50,7 +51,6 @@ Drupal.behaviors.paymill_payment = {
                 exp_year:   getField(['expiry_date', 'year']).val(),
                 cvc:        getField('secure_code').val(),
             };
-            console.log('cc', params);
             if (!self.validateCreditCard(params)) { return; }
 
         } else if (controller === 'Drupalpaymill-paymentAccountController') {
@@ -64,7 +64,6 @@ Drupal.behaviors.paymill_payment = {
                     number:         getField(['account', 'account']).val(),
                     bank:           getField(['account', 'bank_code']).val(),
                 };
-                console.log('account', params);
                 if (!self.validateAccount(params)) { return; }
 
             } else {
@@ -73,12 +72,10 @@ Drupal.behaviors.paymill_payment = {
                     iban:           getField(['ibanbic', 'iban']).val(),
                     bic:            getField(['ibanbic', 'bic']).val(),
                 };
-                console.log('iban', params);
                 if (!self.validateIbanBic(params)) { return; }
 
             }
         }
-        console.log(window.paymill);
         window.paymill.createToken(params, function(error, result) {
             var self = Drupal.behaviors.paymill_payment;
             if (error) {
@@ -86,10 +83,11 @@ Drupal.behaviors.paymill_payment = {
             } else {
                 self.$form.find('.paymill-payment-token')
                     .val(result.token);
-                self.$form.get(0).submit();
+
+
             }
         });
-        return false;
+	return false;
     },
 
     errorHandler: function(error) {
@@ -100,9 +98,9 @@ Drupal.behaviors.paymill_payment = {
         }
         console.log(self.settings, error);
         $('<div class="messages error">' +
-          self.settings.error_messages[error][0] + '</div>')
+          self.settings.error_messages[error] + '</div>')
             .appendTo("#messages .section");
-        console.error(self.settings.error_messages[error][0]);
+        console.error(self.settings.error_messages[error]);
     },
 
     validateAmount: function(value) {
