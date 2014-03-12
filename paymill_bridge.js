@@ -3,20 +3,21 @@ jQuery(document).ready(function($) {
     var settings = Drupal.settings.paymill_payment;
     window.PAYMILL_PUBLIC_KEY = settings.public_key;
 
-    var errorHandler = function(message) {
+
+    var errorHandler = function(error) {
         if ($('#messages').length === 0) {
             $('<div id="messages"><div class="section clearfix">' +
               '</div></div>').insertAfter('#header');
         }
-        $('<div class="messages error">' + message + '</div>')
+        $('<div class="messages error">' +
+          settings.error_messages[error] + '</div>')
             .appendTo("#messages .section");
-        console.error(message);
+        console.error(settings.error_messages[error]);
     };
 
     var responseHandler = function(error, result) {
         if (error) {
-            errorHandler(t('Paymill error: @error',
-                           {'@error': error.apierror}));
+            errorHandler(error.apierror);
         } else {
             settings.$form.find('.paymill-payment-token')
                 .val(result.token);
@@ -25,8 +26,8 @@ jQuery(document).ready(function($) {
     };
 
     var validateAmount = function(value) {
-        var amount = paymill.validateAmount(value);
-        if (!amount) { errorHandler(t('Invalid amount.')); };
+        var amount = paymill.validateAmountInt(value);
+        if (!amount) { errorHandler('field_invalid_amount_int'); };
         return amount;
     };
 
@@ -34,9 +35,9 @@ jQuery(document).ready(function($) {
         var number = paymill.validateCardNumber(p.number),
             expiry = paymill.validateExpiry(p.exp_month, p.exp_year),
             cvc    = paymill.validateCvc(p.cvc);
-        if (!number) { errorHandler(t('Invalid creditcard number.')); };
-        if (!expiry) { errorHandler(t('Invalid expiry date.')); };
-        if (!cvc)    { errorHandler(t('Invalid CVC.')); };
+        if (!number) { errorHandler('field_invalid_card_number'); };
+        if (!expiry) { errorHandler('field_invalid_card_exp'); };
+        if (!cvc)    { errorHandler('field_invalid_card_cvc'); };
 
         if (number && expiry && cvc) { return true; }
         else { return false; };
@@ -46,9 +47,9 @@ jQuery(document).ready(function($) {
         var holder = paymill.validateHolder(p.accountholder),
             number = paymill.validateAccountNumber(p.number),
             bank   = paymill.validateBankCode(p.bank);
-        if (!holder) { errorHandler(t('Invalid account holder.')); };
-        if (!number) { errorHandler(t('Invalid account number.')); };
-        if (!bank)   { errorHandler(t('Invalid bank code.')); };
+        if (!holder) { errorHandler('field_invalid_account_holder'); };
+        if (!number) { errorHandler('field_invalid_account_number'); };
+        if (!bank)   { errorHandler('field_invalid_bank_code'); };
 
         if (holder && number && bank) { return true; }
         else { return false; };
@@ -58,9 +59,9 @@ jQuery(document).ready(function($) {
         var holder = paymill.validateHolder(p.accountholder),
             iban   = paymill.validateIban(p.iban),
             bic    = paymill.validateBic(p.bic);
-        if (!holder) { errorHandler(t('Invalid account holder.')); };
-        if (!iban)   { errorHandler(t('Invalid IBAN.')); };
-        if (!bic)    { errorHandler(t('Invalid BIC.')); };
+        if (!holder) { errorHandler('field_invalid_account_holder'); };
+        if (!iban)   { errorHandler('field_invalid_iban'); };
+        if (!bic)    { errorHandler('field_invalid_bic'); };
 
         if (holder && iban && bic) { return true; }
         else { return false; };
