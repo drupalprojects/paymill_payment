@@ -3,17 +3,20 @@ Drupal.behaviors.paymill_payment = {
     attach: function(context, settings) {
         var self = this;
         self.settings = settings.paymill_payment;
-        window.PAYMILL_PUBLIC_KEY = self.settings.public_key[0];
+        window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
 
-        self.$form = $('.webform-client-form #payment-method-all-forms',
-                       context)
+        $form = $('.webform-client-form #payment-method-all-forms', context)
             .closest('form.webform-client-form', document);
+
         // the current webform page, does not contain a paymethod-selector.
-        if (!self.$form.length) { return; }
-        self.form_id = self.$form.attr('id');
-        self.button_id = $('#edit-webform-ajax-submit'
-                           + self.form_id.split('-')[3]);
-        $(self.button_id).mousedown(self.submitHandler);
+        if (!$form.length) { return; }
+
+        self.form_id = $form.attr('id');
+        self.form_num = self.form_id.split('-')[3];
+        self.$button = $form.find('#edit-webform-ajax-submit-' + self.form_num);
+
+        self.$button.unbind('click');
+        self.$button.click(self.submitHandler);
     },
 
     submitHandler: function(event) {
@@ -25,18 +28,17 @@ Drupal.behaviors.paymill_payment = {
         // Some non-paymill method was selected, do nothing on submit.
         if (controller !== 'Drupalpaymill-paymentCreditCardController'
             && controller !== 'Drupalpaymill-paymentAccountController') {
-            return
+            return true;
         }
-
-        event.preventDefault();
+	event.preventDefault();
         event.stopImmediatePropagation();
 
         // @TODO: Add a spinner here.
 
-        if (!self.validateAmount($('#webform-component-donation-amount ' +
+        /*if (!self.validateAmount($('#webform-component-donation-amount ' +
                                    ' input').val())) {
             return true;
-        }
+        }*/
 
         var getField = function(name) {
             if (name instanceof Array) { name = name.join(']['); }
@@ -51,7 +53,6 @@ Drupal.behaviors.paymill_payment = {
                 exp_year:   getField(['expiry_date', 'year']).val(),
                 cvc:        getField('secure_code').val(),
             };
-            console.log('cc', params);
             if (!self.validateCreditCard(params)) { return; }
 
         } else if (controller === 'Drupalpaymill-paymentAccountController') {
@@ -65,7 +66,6 @@ Drupal.behaviors.paymill_payment = {
                     number:         getField(['account', 'account']).val(),
                     bank:           getField(['account', 'bank_code']).val(),
                 };
-                console.log('account', params);
                 if (!self.validateAccount(params)) { return; }
 
             } else {
@@ -74,23 +74,27 @@ Drupal.behaviors.paymill_payment = {
                     iban:           getField(['ibanbic', 'iban']).val(),
                     bic:            getField(['ibanbic', 'bic']).val(),
                 };
-                console.log('iban', params);
                 if (!self.validateIbanBic(params)) { return; }
 
             }
         }
-        console.log(window.paymill);
         window.paymill.createToken(params, function(error, result) {
             var self = Drupal.behaviors.paymill_payment;
+            var ajax;
             if (error) {
                 self.errorHandler(error.apierror);
             } else {
-                self.$form.find('.paymill-payment-token')
-                    .val(result.token);
-                self.$form.get(0).submit();
+                $('#' + self.form_id + ' .paymill-payment-token').val(result.token);
+
+                if (Drupal.ajax['edit-webform-ajax-next-'+self.form_num].length > 0) {
+                    ajax = Drupal.ajax['edit-webform-ajax-next-'+self.form_num];
+                } else {
+                    ajax = Drupal.ajax['edit-webform-ajax-submit-'+self.form_num];
+                }
+                ajax.eventResponse(ajax.element, event);
             }
         });
-        return false;
+	return false;
     },
 
     errorHandler: function(error) {
@@ -99,11 +103,10 @@ Drupal.behaviors.paymill_payment = {
             $('<div id="messages"><div class="section clearfix">' +
               '</div></div>').insertAfter('#header');
         }
-        console.log(self.settings, error);
         $('<div class="messages error">' +
-          self.settings.error_messages[error][0] + '</div>')
+          self.settings.error_messages[error] + '</div>')
             .appendTo("#messages .section");
-        console.error(self.settings.error_messages[error][0]);
+        console.error(self.settings.error_messages[error]);
     },
 
     validateAmount: function(value) {
