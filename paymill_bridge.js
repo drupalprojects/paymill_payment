@@ -11,6 +11,11 @@ Drupal.behaviors.paymill_payment = {
         // the current webform page, does not contain a paymethod-selector.
         if (!$form.length) { return; }
 
+        if ($('.mo-dialog-wrapper').length === 0) {
+            $('<div class="mo-dialog-wrapper"><div class="mo-dialog-content">'+
+              '</div></div>').appendTo('body');
+        }
+
         self.form_id = $form.attr('id');
         self.form_num = self.form_id.split('-')[3];
         self.$button = $form.find('#edit-webform-ajax-submit-' + self.form_num);
@@ -30,11 +35,10 @@ Drupal.behaviors.paymill_payment = {
             && controller !== 'Drupalpaymill-paymentAccountController') {
             return true;
         }
-	event.preventDefault();
+        event.preventDefault();
         event.stopImmediatePropagation();
 
-        // @TODO: Add a spinner here.
-
+        $('mo-dialog-wrapper').addClass('visible');
 
         var getField = function(name) {
             if (name instanceof Array) { name = name.join(']['); }
