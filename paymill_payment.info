@@ -6,4 +6,5 @@ dependencies[] = payment
 dependencies[] = payment_forms
 dependencies[] = xautoload
 dependencies[] = webform_paymethod_select
+dependencies[] = webform_ajax
 dependencies[] = libraries
