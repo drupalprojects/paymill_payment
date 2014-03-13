@@ -38,7 +38,7 @@ Drupal.behaviors.paymill_payment = {
         event.preventDefault();
         event.stopImmediatePropagation();
 
-        $('mo-dialog-wrapper').addClass('visible');
+        $('.mo-dialog-wrapper').addClass('visible');
 
         var getField = function(name) {
             if (name instanceof Array) { name = name.join(']['); }
