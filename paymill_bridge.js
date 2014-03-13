@@ -35,10 +35,6 @@ Drupal.behaviors.paymill_payment = {
 
         // @TODO: Add a spinner here.
 
-        /*if (!self.validateAmount($('#webform-component-donation-amount ' +
-                                   ' input').val())) {
-            return true;
-        }*/
 
         var getField = function(name) {
             if (name instanceof Array) { name = name.join(']['); }
@@ -107,12 +103,6 @@ Drupal.behaviors.paymill_payment = {
           self.settings.error_messages[error] + '</div>')
             .appendTo("#messages .section");
         console.error(self.settings.error_messages[error]);
-    },
-
-    validateAmount: function(value) {
-        var amount = window.paymill.validateAmountInt(value);
-        if (!amount) { this.errorHandler('field_invalid_amount_int'); };
-        return amount;
     },
 
     validateCreditCard: function(p) {
