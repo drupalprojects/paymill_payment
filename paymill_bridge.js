@@ -5,28 +5,30 @@ Drupal.behaviors.paymill_payment = {
         self.settings = settings.paymill_payment;
         window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
 
-        self.$form = $('#payment-method-all-forms')
-            .closest('form.webform-client-form');
-        // the current webform page, does not contain a paymethod-selector.
-        if (!self.$form.length) { return; }
+        $form = $('.webform-client-form #payment-method-all-forms', context)
+            .closest('form.webform-client-form', document);
 
-        var button = $('#edit-webform-ajax-submit-' + 
-                       self.$form.attr('id').split('-')[3]);
-        $(self.$form, context).once('paymill_payment', function () {
-            button.mousedown(self.submitHandler);
-        });
+        // the current webform page, does not contain a paymethod-selector.
+        if (!$form.length) { return; }
+
+        self.form_id = $form.attr('id');
+        self.form_num = self.form_id.split('-')[3];
+        self.$button = $form.find('#edit-webform-ajax-submit-' + self.form_num);
+
+        self.$button.unbind('click');
+        self.$button.click(self.submitHandler);
     },
 
     submitHandler: function(event) {
         var params;
         var self = Drupal.behaviors.paymill_payment;
-        var controller = self.$form
-            .find('.payment-method-form:visible').attr('id');
+        var controller = $('#' + self.form_id +
+                           ' .payment-method-form:visible').attr('id');
 
         // Some non-paymill method was selected, do nothing on submit.
         if (controller !== 'Drupalpaymill-paymentCreditCardController'
             && controller !== 'Drupalpaymill-paymentAccountController') {
-            return
+            return true;
         }
 	event.preventDefault();
         event.stopImmediatePropagation();
@@ -78,13 +80,18 @@ Drupal.behaviors.paymill_payment = {
         }
         window.paymill.createToken(params, function(error, result) {
             var self = Drupal.behaviors.paymill_payment;
+            var ajax;
             if (error) {
                 self.errorHandler(error.apierror);
             } else {
-                self.$form.find('.paymill-payment-token')
-                    .val(result.token);
+                $('#' + self.form_id + ' .paymill-payment-token').val(result.token);
 
-
+                if (Drupal.ajax['edit-webform-ajax-next-'+self.form_num].length > 0) {
+                    ajax = Drupal.ajax['edit-webform-ajax-next-'+self.form_num];
+                } else {
+                    ajax = Drupal.ajax['edit-webform-ajax-submit-'+self.form_num];
+                }
+                ajax.eventResponse(ajax.element, event);
             }
         });
 	return false;
@@ -96,7 +103,6 @@ Drupal.behaviors.paymill_payment = {
             $('<div id="messages"><div class="section clearfix">' +
               '</div></div>').insertAfter('#header');
         }
-        console.log(self.settings, error);
         $('<div class="messages error">' +
           self.settings.error_messages[error] + '</div>')
             .appendTo("#messages .section");
