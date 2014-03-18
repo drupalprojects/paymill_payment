@@ -23,7 +23,6 @@ Drupal.behaviors.paymill_payment = {
 	if (self.$button.length === 0) { // no webform_ajax.
 	    self.$button = $form.find('input.form-submit');
 	}
-
         self.$button.unbind('click');
         self.$button.click(self.submitHandler);
     },
@@ -84,18 +83,21 @@ Drupal.behaviors.paymill_payment = {
         }
         window.paymill.createToken(params, function(error, result) {
             var self = Drupal.behaviors.paymill_payment;
-            var ajax;
+            var ajax, ajax_next, ajax_submit;
             if (error) {
                 self.errorHandler(error.apierror);
             } else {
                 $('#' + self.form_id + ' .paymill-payment-token').val(result.token);
-                if (Drupal.ajax && Drupal.ajax['edit-webform-ajax-next-'+self.form_num].length > 0) {
-                    ajax = Drupal.ajax['edit-webform-ajax-next-'+self.form_num];
+		ajax_next = 'edit-webform-ajax-next-'+self.form_num;
+		ajax_submit = 'edit-webform-ajax-submit-'+self.form_num;
+
+                if (Drupal.ajax && Drupal.ajax[ajax_submit]) {
+                    ajax = Drupal.ajax[ajax_submit];
 		    ajax.eventResponse(ajax.element, event);
-                } else if (Drupal.ajax && Drupal.ajax['edit-webform-ajax-submit-'+self.form_num].length > 0) {
-                    ajax = Drupal.ajax['edit-webform-ajax-submit-'+self.form_num];
+                } else if (Drupal.ajax && Drupal.ajax[ajax_next]) {
+                    ajax = Drupal.ajax[ajax_next];
 		    ajax.eventResponse(ajax.element, event);
-                } else {
+                } else { // no webform_ajax
 		  $('#' + self.form_id).submit()
 		}
             }
