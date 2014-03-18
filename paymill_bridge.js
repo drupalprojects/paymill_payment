@@ -20,6 +20,10 @@ Drupal.behaviors.paymill_payment = {
         self.form_num = self.form_id.split('-')[3];
         self.$button = $form.find('#edit-webform-ajax-submit-' + self.form_num);
 
+	if (self.$button.length === 0) { // no webform_ajax.
+	    self.$button = $form.find('input.form-submit');
+	}
+
         self.$button.unbind('click');
         self.$button.click(self.submitHandler);
     },
@@ -85,13 +89,15 @@ Drupal.behaviors.paymill_payment = {
                 self.errorHandler(error.apierror);
             } else {
                 $('#' + self.form_id + ' .paymill-payment-token').val(result.token);
-
-                if (Drupal.ajax['edit-webform-ajax-next-'+self.form_num].length > 0) {
+                if (Drupal.ajax && Drupal.ajax['edit-webform-ajax-next-'+self.form_num].length > 0) {
                     ajax = Drupal.ajax['edit-webform-ajax-next-'+self.form_num];
-                } else {
+		    ajax.eventResponse(ajax.element, event);
+                } else if (Drupal.ajax && Drupal.ajax['edit-webform-ajax-submit-'+self.form_num].length > 0) {
                     ajax = Drupal.ajax['edit-webform-ajax-submit-'+self.form_num];
-                }
-                ajax.eventResponse(ajax.element, event);
+		    ajax.eventResponse(ajax.element, event);
+                } else {
+		  $('#' + self.form_id).submit()
+		}
             }
         });
 	return false;
@@ -105,7 +111,7 @@ Drupal.behaviors.paymill_payment = {
         }
         $('<div class="messages error">' +
           self.settings.error_messages[error] + '</div>')
-            .appendTo("#messages .section");
+            .appendTo("#messages .clearfix");
         console.error(self.settings.error_messages[error]);
     },
 
