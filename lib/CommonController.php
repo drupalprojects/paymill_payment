@@ -42,10 +42,10 @@ class CommonController extends \PaymentMethodController {
       if (!$interval) {
         $transaction = $this->createTransaction($client, $payment);
       } else {
-        $offer = $this->createOffer($payment, $interval);
+        $offer_id = $this->createOffer($payment, $interval);
         $paymill_payment = $this->createPaymillPayment($client);
         $subscription = $this->createSubscription(
-          $client, $offer, $paymill_payment);
+          $client, $offer_id, $paymill_payment);
       }
       $payment->setStatus(new \PaymentStatusItem(PAYMENT_STATUS_SUCCESS));
     }
@@ -90,11 +90,23 @@ class CommonController extends \PaymentMethodController {
 
   public function createOffer($payment, $interval) {
     $offer = new \Paymill\Models\Request\Offer();
-    $offer->setAmount($payment->totalAmount(0))
-      ->setCurrency($payment->currency_code)
-      ->setInterval($interval)
-      ->setName($payment->description);
-    return $this->request->create($offer);
+
+    $offer->setFilter(array(
+        'amount'   => $payment->totalAmount(0),
+        'interval' => $interval,
+        'currency' => $payment->currency_code,
+      ));
+    $existing = $this->request->getAll($offer);
+    if (!empty($existing)) {
+      return $existing[0]['id'];
+    }
+    else {
+      $offer->setAmount($payment->totalAmount(0))
+        ->setCurrency($payment->currency_code)
+        ->setInterval($interval)
+        ->setName($payment->description);
+      return $this->request->create($offer)->getId();
+    }
   }
 
   public function createPaymillPayment($client) {
@@ -104,10 +116,10 @@ class CommonController extends \PaymentMethodController {
       return $this->request->create($paymill_payment);
   }
 
-  public function createSubscription($client, $offer, $paymill_payment) {
+  public function createSubscription($client, $offer_id, $paymill_payment) {
       $subscription = new \Paymill\Models\Request\Subscription();
       $subscription->setClient($client->getId())
-        ->setOffer($offer->getId())
+        ->setOffer($offer_id)
         ->setPayment($paymill_payment->getId());
       return $this->request->create($subscription);
   }
