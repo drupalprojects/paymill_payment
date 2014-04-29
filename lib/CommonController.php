@@ -13,13 +13,6 @@ class CommonController extends \PaymentMethodController {
     $this->payment_method_configuration_form_elements_callback = '\Drupal\paymill_payment\configuration_form';
   }
 
-  public function validate(\Payment $payment, \PaymentMethod $payment_method, $strict) {
-    // convert amount to cents.
-    foreach ($payment->line_items as $name => &$line_item) {
-      $line_item->amount = $line_item->amount * 100;
-    }
-  }
-
   public function execute(\Payment $payment) {
     $context = &$payment->context_data['context'];
     $api_key = $payment->method->controller_data['private_key'];
@@ -71,6 +64,11 @@ class CommonController extends \PaymentMethodController {
     }
   }
 
+  public function getTotalAmount(\Payment $payment) {
+    // convert amount to cents. Integer value.
+    return (int) ($payment->totalAmount(0) * 100);
+  }
+
   public function createClient($description, $email) {
     $client = new \Paymill\Models\Request\Client();
     $client->setDescription($description)
@@ -79,10 +77,11 @@ class CommonController extends \PaymentMethodController {
   }
 
   public function createTransaction($client, $payment) {
+    $totalAmount = $this->getTotalAmount($payment);
     $transaction = new \Paymill\Models\Request\Transaction();
     $transaction->setToken($this->token)
       ->setClient($client->getId())
-      ->setAmount($payment->totalAmount(0))
+      ->setAmount($totalAmount)
       ->setCurrency($payment->currency_code)
       ->setDescription($payment->description);
     return $this->request->create($transaction);
@@ -92,7 +91,7 @@ class CommonController extends \PaymentMethodController {
     $offer = new \Paymill\Models\Request\Offer();
 
     $offer->setFilter(array(
-        'amount'   => $payment->totalAmount(0),
+        'amount'   => $this->getTotalAmount($payment),
         'interval' => $interval,
         'currency' => $payment->currency_code,
       ));
@@ -101,7 +100,7 @@ class CommonController extends \PaymentMethodController {
       return $existing[0]['id'];
     }
     else {
-      $offer->setAmount($payment->totalAmount(0))
+      $offer->setAmount($this->getTotalAmount($payment))
         ->setCurrency($payment->currency_code)
         ->setInterval($interval)
         ->setName($payment->description);
