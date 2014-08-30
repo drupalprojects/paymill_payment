@@ -48,7 +48,7 @@ Drupal.behaviors.paymill_payment = {
     };
 
     if (controller === 'Drupalpaymill-paymentCreditCardController') {
-      var params = {
+      params = {
         number:     getField('credit_card_number').val(),
         exp_month:  getField(['expiry_date', 'month']).val(),
         exp_year:   getField(['expiry_date', 'year']).val(),
@@ -57,24 +57,12 @@ Drupal.behaviors.paymill_payment = {
       if (!self.validateCreditCard(params)) { return; }
 
     } else if (controller === 'Drupalpaymill-paymentAccountController') {
-
-      var type = getField('account_or_ibanbic').filter(':checked').val();
-
-      if (type === 'account') {
-        var params = {
-          accountholder: getField('holder').val(),
-          number:        getField(['account', 'account']).val(),
-          bank:          getField(['account', 'bank_code']).val(),
-        };
-        if (!self.validateAccount(params)) { return; }
-      } else {
-        var params = {
-          accountholder: getField('holder').val(),
-          iban:          getField(['ibanbic', 'iban']).val(),
-          bic:           getField(['ibanbic', 'bic']).val(),
-        };
-        if (!self.validateIbanBic(params)) { return; }
-      }
+      params = {
+        accountholder: getField('holder').val(),
+        iban:          getField(['ibanbic', 'iban']).val(),
+        bic:           getField(['ibanbic', 'bic']).val(),
+      };
+      if (!self.validateIbanBic(params)) { return; }
     }
 
     window.paymill.createToken(params, function(error, result) {
@@ -121,18 +109,6 @@ Drupal.behaviors.paymill_payment = {
     if (!cvc)    { this.errorHandler('field_invalid_card_cvc'); };
 
     if (number && expiry && cvc) { return true; }
-    else { return false; };
-  },
-
-  validateAccount: function(p) {
-    var holder = window.paymill.validateHolder(p.accountholder),
-    var number = window.paymill.validateAccountNumber(p.number),
-    var bank   = window.paymill.validateBankCode(p.bank);
-    if (!holder) { this.errorHandler('field_invalid_account_holder'); };
-    if (!number) { this.errorHandler('field_invalid_account_number'); };
-    if (!bank)   { this.errorHandler('field_invalid_bank_code'); };
-
-    if (holder && number && bank) { return true; }
     else { return false; };
   },
 
