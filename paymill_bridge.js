@@ -6,19 +6,18 @@ Drupal.behaviors.paymill_payment = {
     self.settings = settings.paymill_payment;
     window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
 
-    var $form = $('.webform-client-form #payment-method-all-forms', context)
+    self.$form = $('.webform-client-form #payment-method-all-forms', context)
       .closest('form.webform-client-form', document);
 
     // the current webform page, does not contain a paymethod-selector.
-    if (!$form.length) { return; }
+    if (!self.$form.length) { return; }
 
     if ($('.mo-dialog-wrapper').length === 0) {
       $('<div class="mo-dialog-wrapper"><div class="mo-dialog-content">'
         + '</div></div>').appendTo('body');
     }
 
-    self.form_id = $form.attr('id');
-    self.form_num = self.form_id.split('-')[3];
+    self.form_num = self.$form.attr('id').split('-')[3];
     self.$button = $form.find('#edit-webform-ajax-submit-' + self.form_num);
 
     if (self.$button.length === 0) { // no webform_ajax.
@@ -31,7 +30,7 @@ Drupal.behaviors.paymill_payment = {
   submitHandler: function(event) {
     var params;
     var self = Drupal.behaviors.paymill_payment;
-    var controller = $('#' + self.form_id + ' .payment-method-form:visible').attr('id');
+    var controller = self.$form.find('.payment-method-form:visible').attr('id');
 
     // Some non-paymill method was selected, do nothing on submit.
     if (controller !== 'Drupalpaymill-paymentCreditCardController' && controller !== 'Drupalpaymill-paymentAccountController') {
@@ -71,7 +70,7 @@ Drupal.behaviors.paymill_payment = {
       if (error) {
         self.errorHandler(error.apierror);
       } else {
-        $('#' + self.form_id + ' .paymill-payment-token').val(result.token);
+        self.$form.find('.paymill-payment-token').val(result.token);
         ajax_next = 'edit-webform-ajax-next-'+self.form_num;
         ajax_submit = 'edit-webform-ajax-submit-'+self.form_num;
 
@@ -82,7 +81,7 @@ Drupal.behaviors.paymill_payment = {
           ajax = Drupal.ajax[ajax_next];
           ajax.eventResponse(ajax.element, event);
         } else { // no webform_ajax
-          $('#' + self.form_id).submit()
+          self.$form.submit()
         }
       }
     });
