@@ -98,13 +98,28 @@ Drupal.behaviors.paymill_payment = {
 
   errorHandler: function(error) {
     var self = Drupal.behaviors.paymill_payment;
-    if ($('#messages').length === 0) {
-      $('<div id="messages"><div class="section clearfix"></div></div>')
-        .insertAfter('#header');
+    var msg = self.settings.error_messages[error];
+    var settings, wrapper, child;
+	if (typeof Drupal.clientsideValidation !== 'undefined') {
+	  settings = Drupal.settings.clientsideValidation['forms'][self.form_id];
+	  wrapper = document.createElement(settings.general.wrapper);
+	  child = document.createElement(settings.general.errorElement);
+	  child.className = settings.general.errorClass;
+	  child.innerHTML = msg;
+	  wrapper.appendChild(child);
+
+	  $('#clientsidevalidation-' + self.form_id + '-errors ul')
+	    .append(wrapper).show()
+		.parent().show();
+    } else {
+        if ($('#messages').length === 0) {
+            $('<div id="messages"><div class="section clearfix"></div></div>')
+                .insertAfter('#header');
+        }
+        $('<div class="messages error">' + msg + '</div>')
+            .appendTo("#messages .clearfix");
     }
-    $('<div class="messages error">' + self.settings.error_messages[error] + '</div>')
-      .appendTo("#messages .clearfix");
-    console.error(self.settings.error_messages[error]);
+    console.error(msg);
   },
 
   validateCreditCard: function(p) {
