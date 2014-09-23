@@ -108,8 +108,8 @@ Drupal.behaviors.paymill_payment = {
   },
 
   validateCreditCard: function(p) {
-    var number = window.paymill.validateCardNumber(p.number),
-    var expiry = window.paymill.validateExpiry(p.exp_month, p.exp_year),
+    var number = window.paymill.validateCardNumber(p.number);
+    var expiry = window.paymill.validateExpiry(p.exp_month, p.exp_year);
     var cvc    = window.paymill.validateCvc(p.cvc);
     if (!number) { this.errorHandler('field_invalid_card_number'); };
     if (!expiry) { this.errorHandler('field_invalid_card_exp'); };
@@ -120,8 +120,8 @@ Drupal.behaviors.paymill_payment = {
   },
 
   validateIbanBic: function(p) {
-    var holder = window.paymill.validateHolder(p.accountholder),
-    var iban   = window.paymill.validateIban(p.iban),
+    var holder = window.paymill.validateHolder(p.accountholder);
+    var iban   = window.paymill.validateIban(p.iban);
     var bic    = window.paymill.validateBic(p.bic);
     if (!holder) { this.errorHandler('field_invalid_account_holder'); };
     if (!iban)   { this.errorHandler('field_invalid_iban'); };
