@@ -40,16 +40,10 @@ class CommonForm {
   }
 
   public static function addPaymillBridge(&$form) {
-    $form['#attached']['js'] = array(
-      array(
-        'data' => 'https://bridge.paymill.com/',
-        'type' => 'external'
-      ),
-      array(
-        'data' => drupal_get_path('module', 'paymill_payment') .
-          '/paymill_bridge.js',
-        'type' => 'file'
-      ));
+    drupal_add_js(
+      drupal_get_path('module', 'paymill_payment') . '/paymill_bridge.js',
+      'file'
+    );
   }
 
   public static function addTokenField(&$form) {

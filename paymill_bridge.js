@@ -1,13 +1,21 @@
 (function ($) {
-
 Drupal.behaviors.paymill_payment = {
   attach: function(context, settings) {
     var self = this;
-    self.settings = settings.paymill_payment;
+    if (typeof self.settings === 'undefined') {
+        self.settings = settings.paymill_payment;
+    }
+
     window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
 
-    self.$form = $('.webform-client-form #payment-method-all-forms', context)
-      .closest('form.webform-client-form', document);
+    if (typeof window.paymill === 'undefined') {
+        $.getScript('https://bridge.paymill.com/').done(function() {
+            self.attach();
+        });
+    }
+
+    self.$form = $('.webform-client-form #payment-method-all-forms')
+      .closest('form.webform-client-form');
 
     // the current webform page, does not contain a paymethod-selector.
     if (!self.$form.length) { return; }
@@ -18,7 +26,7 @@ Drupal.behaviors.paymill_payment = {
     }
 
     self.form_num = self.$form.attr('id').split('-')[3];
-    self.$button = $form.find('#edit-webform-ajax-submit-' + self.form_num);
+    self.$button = self.$form.find('#edit-webform-ajax-submit-' + self.form_num);
 
     if (self.$button.length === 0) { // no webform_ajax.
       self.$button = $form.find('input.form-submit');
