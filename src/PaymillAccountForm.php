@@ -1,18 +1,16 @@
 <?php
 /**
  * @file
- *
- * @author    Paul Haerle <phaer@phaer.org>
- * @copyright Copyright (c) 2014 copyright
  */
 
 namespace Drupal\paymill_payment;
 
+use \Drupal\payment_forms\PaymentContextInterface;
 
 class PaymillAccountForm extends \Drupal\payment_forms\AccountForm {
 
-  public function getForm(array &$form, array &$form_state) {
-    parent::getForm($form, $form_state);
+  public function getForm(array &$form, array &$form_state, PaymentContextInterface $context) {
+    parent::getForm($form, $form_state, $context);
     $payment = &$form_state['payment'];
 
     // Paymill does not accept a country parameter for direct debit atm.
