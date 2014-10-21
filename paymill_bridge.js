@@ -1,12 +1,19 @@
-(function ($) {
+  (function ($) {
 Drupal.behaviors.paymill_payment = {
   attach: function(context, settings) {
     var self = this;
+
     if (typeof self.settings === 'undefined') {
-        self.settings = settings.paymill_payment;
+      self.$form = $('.webform-client-form #payment-method-all-forms')
+	.closest('form.webform-client-form');
+      // the current webform page, does not contain a paymethod-selector.
+      if (!self.$form.length) { return; }
+      self.form_id = self.$form.attr('id');
+      self.form_num = self.form_id.split('-')[3];
+      self.pmid = self.$form.find('.payment-method-form').attr('data-pmid');
+      self.settings = settings.paymill_payment[self.pmid];
     }
 
-    window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
 
     if (typeof window.paymill === 'undefined') {
         $.getScript('https://bridge.paymill.com/').done(function() {
@@ -14,19 +21,13 @@ Drupal.behaviors.paymill_payment = {
         });
     }
 
-    self.$form = $('.webform-client-form #payment-method-all-forms')
-      .closest('form.webform-client-form');
-
-    // the current webform page, does not contain a paymethod-selector.
-    if (!self.$form.length) { return; }
-
     if ($('.mo-dialog-wrapper').length === 0) {
       $('<div class="mo-dialog-wrapper"><div class="mo-dialog-content">' +
 	'</div></div>').appendTo('body');
     }
+    
+    window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
 
-    self.form_id = self.$form.attr('id');
-    self.form_num = self.form_id.split('-')[3];
     self.$button = self.$form.find('#edit-webform-ajax-submit-' + self.form_num);
 
     if (self.$button.length === 0) { // no webform_ajax.
