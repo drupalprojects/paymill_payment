@@ -21,11 +21,12 @@ Drupal.behaviors.paymill_payment = {
     if (!self.$form.length) { return; }
 
     if ($('.mo-dialog-wrapper').length === 0) {
-      $('<div class="mo-dialog-wrapper"><div class="mo-dialog-content">'
-        + '</div></div>').appendTo('body');
+      $('<div class="mo-dialog-wrapper"><div class="mo-dialog-content">' +
+	'</div></div>').appendTo('body');
     }
 
-    self.form_num = self.$form.attr('id').split('-')[3];
+    self.form_id = self.$form.attr('id');
+    self.form_num = self.form_id.split('-')[3];
     self.$button = self.$form.find('#edit-webform-ajax-submit-' + self.form_num);
 
     if (self.$button.length === 0) { // no webform_ajax.
@@ -89,7 +90,7 @@ Drupal.behaviors.paymill_payment = {
           ajax = Drupal.ajax[ajax_next];
           ajax.eventResponse(ajax.element, event);
         } else { // no webform_ajax
-          self.$form.submit()
+          self.$form.submit();
         }
       }
     });
@@ -101,7 +102,7 @@ Drupal.behaviors.paymill_payment = {
     var msg = self.settings.error_messages[error];
     var settings, wrapper, child;
 	if (typeof Drupal.clientsideValidation !== 'undefined') {
-	  settings = Drupal.settings.clientsideValidation['forms'][self.form_id];
+	  settings = Drupal.settings.clientsideValidation.forms[self.form_id];
 	  wrapper = document.createElement(settings.general.wrapper);
 	  child = document.createElement(settings.general.errorElement);
 	  child.className = settings.general.errorClass;
@@ -126,24 +127,24 @@ Drupal.behaviors.paymill_payment = {
     var number = window.paymill.validateCardNumber(p.number);
     var expiry = window.paymill.validateExpiry(p.exp_month, p.exp_year);
     var cvc    = window.paymill.validateCvc(p.cvc);
-    if (!number) { this.errorHandler('field_invalid_card_number'); };
-    if (!expiry) { this.errorHandler('field_invalid_card_exp'); };
-    if (!cvc)    { this.errorHandler('field_invalid_card_cvc'); };
+    if (!number) { this.errorHandler('field_invalid_card_number'); }
+    if (!expiry) { this.errorHandler('field_invalid_card_exp'); }
+    if (!cvc)    { this.errorHandler('field_invalid_card_cvc'); }
 
     if (number && expiry && cvc) { return true; }
-    else { return false; };
+    else { return false; }
   },
 
   validateIbanBic: function(p) {
     var holder = window.paymill.validateHolder(p.accountholder);
     var iban   = window.paymill.validateIban(p.iban);
     var bic    = window.paymill.validateBic(p.bic);
-    if (!holder) { this.errorHandler('field_invalid_account_holder'); };
-    if (!iban)   { this.errorHandler('field_invalid_iban'); };
-    if (!bic)    { this.errorHandler('field_invalid_bic'); };
+    if (!holder) { this.errorHandler('field_invalid_account_holder'); }
+    if (!iban)   { this.errorHandler('field_invalid_iban'); }
+    if (!bic)    { this.errorHandler('field_invalid_bic'); }
 
     if (holder && iban && bic) { return true; }
-    else { return false; };
+    else { return false; }
   }
 };
 
