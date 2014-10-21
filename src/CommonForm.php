@@ -19,6 +19,7 @@ class CommonForm {
             'internal_server_error'        => t('Internal server error'),
             'invalid_public_key'           => t('Invalid public key'),
             'invalid_payment_data'         => t('Invalid payment data'),
+            'payment_not_testdata'	   => t('Please use only test data while test-mode is active.'),
             'unknown_error'                => t('Unknown error'),
             '3ds_cancelled'                => t('3-D Secure cancelled'),
             'field_invalid_card_number'    => t('Invalid card number'),
