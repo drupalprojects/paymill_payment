@@ -78,7 +78,7 @@ Drupal.behaviors.paymill_payment = {
       var self = Drupal.behaviors.paymill_payment;
       var ajax, ajax_next, ajax_submit;
       if (error) {
-        self.errorHandler(error.apierror);
+        self.errorHandler(error);
       } else {
         self.$form.find('.paymill-payment-token').val(result.token);
         ajax_next = 'edit-webform-ajax-next-'+self.form_num;
@@ -100,7 +100,12 @@ Drupal.behaviors.paymill_payment = {
 
   errorHandler: function(error) {
     var self = Drupal.behaviors.paymill_payment;
-    var msg = self.settings.error_messages[error];
+    var msg;
+    if (typeof error.message === 'undefined') {
+      msg = self.settings.error_messages[error.apierror];
+    } else {
+      msg = error.message;
+    }
     var settings, wrapper, child;
 	if (typeof Drupal.clientsideValidation !== 'undefined') {
 	  settings = Drupal.settings.clientsideValidation.forms[self.form_id];
@@ -121,7 +126,7 @@ Drupal.behaviors.paymill_payment = {
         $('<div class="messages error">' + msg + '</div>')
             .appendTo("#messages .clearfix");
     }
-    console.error(msg);
+    console.error(error, msg);
   },
 
   validateCreditCard: function(p) {
