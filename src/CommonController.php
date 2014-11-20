@@ -44,23 +44,20 @@ class CommonController extends \PaymentMethodController {
     }
     catch(\Paymill\Services\PaymillException $e) {
       $payment->setStatus(new \PaymentStatusItem(PAYMENT_STATUS_FAILED));
-      entity_save('payment', $payment);
 
-      $message = t(
-        '@method payment method encountered an error while trying ' .
+      $message = '@method payment method encountered an error while trying ' .
         'to contact the paymill server. The response code was "@response", ' .
         'the status code "@status" and the error message "@message". ' .
-        '(pid: @pid, pmid: @pmid)',
-        array(
-          '@response' => $e->getResponseCode(),
-          '@status'   => $e->getStatusCode(),
-          '@message'  => $e->getErrorMessage(),
-          '@pid'      => $payment->pid,
-          '@pmid'     => $payment->method->pmid,
-          '@method'   => $payment->method->title_specific,
-        ));
-      throw new \PaymentException($message);
-
+        '(pid: @pid, pmid: @pmid)';
+      $varibles = array(
+        '@response' => $e->getResponseCode(),
+        '@status'   => $e->getStatusCode(),
+        '@message'  => $e->getErrorMessage(),
+        '@pid'      => $payment->pid,
+        '@pmid'     => $payment->method->pmid,
+        '@method'   => $payment->method->title_specific,
+      );
+      watchdog('paymill_payment', $message, $variables, WATCHDOG_ERROR);
     }
   }
 
