@@ -1,19 +1,7 @@
-  (function ($) {
+(function ($) {
 Drupal.behaviors.paymill_payment = {
   attach: function(context, settings) {
     var self = this;
-
-    if (typeof self.settings === 'undefined') {
-      self.$form = $('.webform-client-form #payment-method-all-forms')
-	.closest('form.webform-client-form');
-      // the current webform page, does not contain a paymethod-selector.
-      if (!self.$form.length) { return; }
-      self.form_id = self.$form.attr('id');
-      self.form_num = self.form_id.split('-')[3];
-      self.pmid = self.$form.find('.payment-method-form').attr('data-pmid');
-      self.settings = settings.paymill_payment[self.pmid];
-    }
-
 
     if (typeof window.paymill === 'undefined') {
         $.getScript('https://bridge.paymill.com/').done(function() {
@@ -22,25 +10,31 @@ Drupal.behaviors.paymill_payment = {
     }
 
     if ($('.mo-dialog-wrapper').length === 0) {
-      $('<div class="mo-dialog-wrapper"><div class="mo-dialog-content">' +
-	'</div></div>').appendTo('body');
+      $('<div class="mo-dialog-wrapper"><div class="mo-dialog-content"></div></div>').appendTo('body');
     }
-    
-    window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
 
-    self.$button = self.$form.find('#edit-webform-ajax-submit-' + self.form_num);
+    $('.webform-client-form #payment-method-all-forms').each(function() {
+      var $form = $(this).closest('form.webform-client-form');
+      var form_num = $form.attr('id').split('-')[3];
+      var $button = $form.find('#edit-webform-ajax-submit-' + form_num);
 
-    if (self.$button.length === 0) { // no webform_ajax.
-      self.$button = $form.find('input.form-submit');
-    }
-    self.$button.unbind('click');
-    self.$button.click(self.submitHandler);
+      if ($button.length === 0) { // no webform_ajax.
+        $button = $form.find('input.form-submit');
+      }
+      $button.unbind('click');
+      $button.click(self.submitHandler);
+    });
   },
 
   submitHandler: function(event) {
+    var $form = $(event.target).closest('form');
     var params;
     var self = Drupal.behaviors.paymill_payment;
-    var controller = self.$form.find('.payment-method-form:visible').attr('id');
+    var $method = $form.find('.payment-method-form:visible');
+    var controller = $method.attr('id');
+    self.$form = $form;
+    self.$method = $method;
+    self.settings = Drupal.settings.paymill_payment['pmid-' + $method.data('pmid')];
 
     // Some non-paymill method was selected, do nothing on submit.
     if (controller !== 'Drupalpaymill-paymentCreditCardController' && controller !== 'Drupalpaymill-paymentAccountController') {
@@ -53,9 +47,10 @@ Drupal.behaviors.paymill_payment = {
 
     var getField = function(name) {
       if (name instanceof Array) { name = name.join(']['); }
-      return $('[name="submitted[paymethod_select]' + '[payment_method_all_forms][' + controller + '][' + name + ']"]');
+      return $method.find('[name$="[' + name + ']"]');
     };
 
+    window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
     if (controller === 'Drupalpaymill-paymentCreditCardController') {
       params = {
         number:     getField('credit_card_number').val(),
@@ -76,22 +71,18 @@ Drupal.behaviors.paymill_payment = {
 
     window.paymill.createToken(params, function(error, result) {
       var self = Drupal.behaviors.paymill_payment;
-      var ajax, ajax_next, ajax_submit;
+      var ajax, button_id;
       if (error) {
         self.errorHandler(error);
       } else {
-        self.$form.find('.paymill-payment-token').val(result.token);
-        ajax_next = 'edit-webform-ajax-next-'+self.form_num;
-        ajax_submit = 'edit-webform-ajax-submit-'+self.form_num;
+        $form.find('.paymill-payment-token').val(result.token);
+        button_id = $(event.target).attr('id');
 
-        if (Drupal.ajax && Drupal.ajax[ajax_submit]) {
-          ajax = Drupal.ajax[ajax_submit];
-          ajax.eventResponse(ajax.element, event);
-        } else if (Drupal.ajax && Drupal.ajax[ajax_next]) {
-          ajax = Drupal.ajax[ajax_next];
+        if (Drupal.ajax && Drupal.ajax[button_id]) {
+          ajax = Drupal.ajax[button_id];
           ajax.eventResponse(ajax.element, event);
         } else { // no webform_ajax
-          self.$form.submit();
+          $form.submit();
         }
       }
     });
@@ -99,23 +90,26 @@ Drupal.behaviors.paymill_payment = {
   },
 
   errorHandler: function(error) {
-    var self = Drupal.behaviors.paymill_payment;
+    var $method = this.$method;
+    var $form = this.$form;
+    var settings = this.settings;
+    var form_id = $form.attr('id');
     var msg;
     if (typeof error.message === 'undefined') {
-      msg = self.settings.error_messages[error.apierror];
+      msg = settings.error_messages[error.apierror];
     } else {
       msg = error.message;
     }
     var settings, wrapper, child;
-	if (typeof Drupal.clientsideValidation !== 'undefined') {
-	  settings = Drupal.settings.clientsideValidation.forms[self.form_id];
-	  wrapper = document.createElement(settings.general.wrapper);
-	  child = document.createElement(settings.general.errorElement);
-	  child.className = settings.general.errorClass;
-	  child.innerHTML = msg;
-	  wrapper.appendChild(child);
+    if (typeof Drupal.clientsideValidation !== 'undefined') {
+      settings = Drupal.settings.clientsideValidation.forms[form_id];
+      wrapper = document.createElement(settings.general.wrapper);
+      child = document.createElement(settings.general.errorElement);
+      child.className = settings.general.errorClass;
+      child.innerHTML = msg;
+      wrapper.appendChild(child);
 
-	  $('#clientsidevalidation-' + self.form_id + '-errors ul')
+	  $('#clientsidevalidation-' + form_id + '-errors ul')
 	    .append(wrapper).show()
 		.parent().show();
     } else {

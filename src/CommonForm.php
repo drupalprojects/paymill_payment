@@ -13,7 +13,7 @@ class CommonForm {
   public static function getSettings($payment) {
     return array(
       'paymill_payment' => array(
-        $payment->method->pmid => array(
+        'pmid-' . $payment->method->pmid => array(
           'public_key' => $payment->method->controller_data['public_key'],
           'error_messages' => array(
             'internal_server_error'        => t('Internal server error'),
