@@ -14,7 +14,7 @@ class CommonController extends \PaymentMethodController {
   }
 
   public function execute(\Payment $payment) {
-    $context = &$payment->context_data['context'];
+    $context = $payment->contextObj;
     $api_key = $payment->method->controller_data['private_key'];
 
     switch ($context->value('donation_interval')) {
