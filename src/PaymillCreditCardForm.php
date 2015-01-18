@@ -1,14 +1,6 @@
 <?php
-/**
- * @file
- *
- * @author    Paul Haerle <phaer@phaer.org>
- * @copyright Copyright (c) 2013 copyright
- */
 
 namespace Drupal\paymill_payment;
-
-use \Drupal\payment_forms\PaymentContextInterface;
 
 class PaymillCreditCardForm extends \Drupal\payment_forms\CreditCardForm {
   static protected $issuers = array(
@@ -34,9 +26,8 @@ class PaymillCreditCardForm extends \Drupal\payment_forms\CreditCardForm {
     'china_unionpay' => 'CSC (Card Security Code)',
   );
 
-  public function getForm(array &$form, array &$form_state, PaymentContextInterface $context) {
-    parent::getForm($form, $form_state, $context);
-    $payment = &$form_state['payment'];
+  public function getForm(array &$form, array &$form_state, \Payment $payment) {
+    parent::getForm($form, $form_state, $payment);
 
     drupal_add_js(CommonForm::getSettings($payment), 'setting');
     CommonForm::addPaymillBridge($form);
@@ -45,8 +36,8 @@ class PaymillCreditCardForm extends \Drupal\payment_forms\CreditCardForm {
     return $form;
   }
 
-  public function validateForm(array &$element, array &$form_state) {
+  public function validateForm(array &$element, array &$form_state, \Payment $payment) {
     // Paymill takes care of the real validation, client-side.
-    CommonForm::addTokenToPaymentMethodData($element, $form_state);
+    CommonForm::addTokenToPaymentMethodData($element, $form_state, $payment);
   }
 }

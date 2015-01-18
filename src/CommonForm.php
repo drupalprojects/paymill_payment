@@ -1,11 +1,4 @@
 <?php
-/**
- * @file
- *
- * @author    Paul Haerle <phaer@phaer.org>
- * @copyright Copyright (c) 2013
- *
- */
 
 namespace Drupal\paymill_payment;
 
@@ -57,10 +50,8 @@ class CommonForm {
     );
   }
 
-  public static function addTokenToPaymentMethodData(&$element, &$form_state) {
-    $values = drupal_array_get_nested_value(
-      $form_state['values'], $element['#parents']);
-    $form_state['payment']->method_data['paymill_payment_token'] =
-      $values['paymill_payment_token'];
+  public static function addTokenToPaymentMethodData(&$element, &$form_state, \Payment $payment) {
+    $values = drupal_array_get_nested_value($form_state['values'], $element['#parents']);
+    $payment->method_data['paymill_payment_token'] = $values['paymill_payment_token'];
   }
 }

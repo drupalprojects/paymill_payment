@@ -1,17 +1,11 @@
 <?php
-/**
- * @file
- */
 
 namespace Drupal\paymill_payment;
 
-use \Drupal\payment_forms\PaymentContextInterface;
-
 class PaymillAccountForm extends \Drupal\payment_forms\AccountForm {
 
-  public function getForm(array &$form, array &$form_state, PaymentContextInterface $context) {
-    parent::getForm($form, $form_state, $context);
-    $payment = &$form_state['payment'];
+  public function getForm(array &$form, array &$form_state, \Payment $payment) {
+    parent::getForm($form, $form_state, $payment);
 
     // Paymill does not accept a country parameter for direct debit atm.
     unset($form['account']['country']);
@@ -23,8 +17,8 @@ class PaymillAccountForm extends \Drupal\payment_forms\AccountForm {
     return $form;
   }
 
-  public function validateForm(array &$element, array &$form_state) {
+  public function validateForm(array &$element, array &$form_state, \Payment $payment) {
     // Paymill takes care of the real validation.
-    CommonForm::addTokenToPaymentMethodData($element, $form_state);
+    CommonForm::addTokenToPaymentMethodData($element, $form_state, $payment);
   }
 }
