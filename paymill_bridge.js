@@ -3,100 +3,65 @@ Drupal.behaviors.paymill_payment = {
   attach: function(context, settings) {
     var self = this;
 
-    if (typeof window.paymill === 'undefined') {
-        $.getScript('https://bridge.paymill.com/').done(function() {
-            self.attach();
-        });
-    }
-
-    if ($('.mo-dialog-wrapper').length === 0) {
-      $('<div class="mo-dialog-wrapper"><div class="mo-dialog-content"></div></div>').appendTo('body');
-    }
-
-    $('.webform-client-form #payment-method-all-forms').each(function() {
-      var $form = $(this).closest('form.webform-client-form');
-      var form_num = $form.attr('id').split('-')[3];
-      var $button = $form.find('#edit-webform-ajax-submit-' + form_num);
-
-      if ($button.length === 0) { // no webform_ajax.
-        $button = $form.find('input.form-submit');
+    if ($('.paymill-payment-token', context).length > 0) {
+      this.settings = settings.paymill_payment;
+      if (!Drupal.payment_handler) {
+        Drupal.payment_handler = {};
       }
-      $button.unbind('click');
-      $button.click(self.submitHandler);
-    });
+      for (var pmid in settings.paymill_payment) {
+        if (pmid.slice(0, 5) == 'pmid-') {
+          Drupal.payment_handler[pmid.slice(5)] = function(pmid, $method, submitter) {
+            self.validateHandler(pmid, $method, submitter);
+          };
+        }
+      }
+    }
   },
 
-  submitHandler: function(event) {
-    var $form = $(event.target).closest('form');
-    var params;
-    var self = Drupal.behaviors.paymill_payment;
-    var $method = $form.find('.payment-method-form:visible');
-    var controller = $method.attr('id');
-    self.$form = $form;
-    self.$method = $method;
-    self.settings = Drupal.settings.paymill_payment['pmid-' + $method.data('pmid')];
-
-    // Some non-paymill method was selected, do nothing on submit.
-    if (controller !== 'Drupalpaymill-paymentCreditCardController' && controller !== 'Drupalpaymill-paymentAccountController') {
-      return true;
-    }
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    $('.mo-dialog-wrapper').addClass('visible');
+  validateHandler: function(pmid, $method, submitter) {
+    var settings = this.settings['pmid-' + pmid];
 
     var getField = function(name) {
       if (name instanceof Array) { name = name.join(']['); }
       return $method.find('[name$="[' + name + ']"]');
     };
 
-    window.PAYMILL_PUBLIC_KEY = self.settings.public_key;
-    if (controller === 'Drupalpaymill-paymentCreditCardController') {
+    var params;
+    window.PAYMILL_PUBLIC_KEY = settings.public_key;
+    if (settings.method == 'credit_card') {
       params = {
         number:     getField('credit_card_number').val(),
         exp_month:  getField(['expiry_date', 'month']).val(),
         exp_year:   getField(['expiry_date', 'year']).val(),
         cvc:        getField('secure_code').val(),
       };
-      if (!self.validateCreditCard(params)) { return; }
-
-    } else if (controller === 'Drupalpaymill-paymentAccountController') {
+      if (!this.validateCreditCard(params)) { return; }
+    }
+    else if (settings.method == 'account') {
       params = {
         accountholder: getField('holder').val(),
         iban:          getField(['ibanbic', 'iban']).val(),
         bic:           getField(['ibanbic', 'bic']).val(),
       };
-      if (!self.validateIbanBic(params)) { return; }
+      if (!this.validateIbanBic(params)) { return; }
     }
 
+    var self = this;
     window.paymill.createToken(params, function(error, result) {
-      var self = Drupal.behaviors.paymill_payment;
-      var ajax, button_id;
       if (error) {
         self.errorHandler(error);
       } else {
-        $form.find('.paymill-payment-token').val(result.token);
-        button_id = $(event.target).attr('id');
-
-        if (Drupal.ajax && Drupal.ajax[button_id]) {
-          ajax = Drupal.ajax[button_id];
-          ajax.eventResponse(ajax.element, event);
-        } else { // no webform_ajax
-          $form.submit();
-        }
+        $method.find('.paymill-payment-token').val(result.token);
+        submitter.ready();
       }
     });
-    return false;
   },
 
   errorHandler: function(error) {
-    var $method = this.$method;
-    var $form = this.$form;
-    var settings = this.settings;
-    var form_id = $form.attr('id');
+    var form_id = this.$form.attr('id');
     var msg;
     if (typeof error.message === 'undefined') {
-      msg = settings.error_messages[error.apierror];
+      msg = this.settings.error_messages[error.apierror];
     } else {
       msg = error.message;
     }
@@ -131,8 +96,7 @@ Drupal.behaviors.paymill_payment = {
     if (!expiry) { this.errorHandler('field_invalid_card_exp'); }
     if (!cvc)    { this.errorHandler('field_invalid_card_cvc'); }
 
-    if (number && expiry && cvc) { return true; }
-    else { return false; }
+    return number && expiry && cvc;
   },
 
   validateIbanBic: function(p) {
@@ -143,8 +107,7 @@ Drupal.behaviors.paymill_payment = {
     if (!iban)   { this.errorHandler('field_invalid_iban'); }
     if (!bic)    { this.errorHandler('field_invalid_bic'); }
 
-    if (holder && iban && bic) { return true; }
-    else { return false; }
+    return holder && iban && bic;
   }
 };
 

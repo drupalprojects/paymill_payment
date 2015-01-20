@@ -49,7 +49,7 @@ class CommonController extends \PaymentMethodController {
         'to contact the paymill server. The response code was "@response", ' .
         'the status code "@status" and the error message "@message". ' .
         '(pid: @pid, pmid: @pmid)';
-      $varibles = array(
+      $variables = array(
         '@response' => $e->getResponseCode(),
         '@status'   => $e->getStatusCode(),
         '@message'  => $e->getErrorMessage(),

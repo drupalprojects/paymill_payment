@@ -10,7 +10,9 @@ class PaymillAccountForm extends \Drupal\payment_forms\AccountForm {
     // Paymill does not accept a country parameter for direct debit atm.
     unset($form['account']['country']);
 
-    drupal_add_js(CommonForm::getSettings($payment), 'setting');
+    $settings = CommonForm::getSettings($payment);
+    $settings['paymill_payment']['pmid-' . $payment->method->pmid]['method'] = 'account';
+    drupal_add_js($settings, 'setting');
     CommonForm::addPaymillBridge($form);
     CommonForm::addTokenField($form);
 

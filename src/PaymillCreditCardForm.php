@@ -29,7 +29,9 @@ class PaymillCreditCardForm extends \Drupal\payment_forms\CreditCardForm {
   public function getForm(array &$form, array &$form_state, \Payment $payment) {
     parent::getForm($form, $form_state, $payment);
 
-    drupal_add_js(CommonForm::getSettings($payment), 'setting');
+    $settings = CommonForm::getSettings($payment);
+    $settings['paymill_payment']['pmid-' . $payment->method->pmid]['method'] = 'credit_card';
+    drupal_add_js($settings, 'setting');
     CommonForm::addPaymillBridge($form);
     CommonForm::addTokenField($form);
 
