@@ -50,6 +50,7 @@ Drupal.behaviors.paymill_payment = {
     window.paymill.createToken(params, function(error, result) {
       if (error) {
         self.errorHandler(error);
+        submitter.error();
       } else {
         $method.find('.paymill-payment-token').val(result.token);
         submitter.ready();
