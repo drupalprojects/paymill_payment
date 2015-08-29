@@ -35,7 +35,10 @@ Drupal.behaviors.paymill_payment = {
         exp_year:   getField(['expiry_date', 'year']).val(),
         cvc:        getField('secure_code').val(),
       };
-      if (!this.validateCreditCard(params)) { return; }
+      if (!this.validateCreditCard(params)) {
+        submitter.error();
+        return;
+      }
     }
     else if (settings.method == 'account') {
       params = {
@@ -43,7 +46,10 @@ Drupal.behaviors.paymill_payment = {
         iban:          getField(['ibanbic', 'iban']).val(),
         bic:           getField(['ibanbic', 'bic']).val(),
       };
-      if (!this.validateIbanBic(params)) { return; }
+      if (!this.validateIbanBic(params)) {
+        submitter.error();
+        return;
+      }
     }
 
     var self = this;
