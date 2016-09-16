@@ -33,7 +33,7 @@ class PaymillCreditCardForm extends \Drupal\payment_forms\CreditCardForm {
     $settings['paymill_payment']['pmid-' . $payment->method->pmid]['method'] = 'credit_card';
     drupal_add_js($settings, 'setting');
     CommonForm::addPaymillBridge($form);
-    CommonForm::addTokenField($form);
+    CommonForm::addTokenField($form, $payment->method->pmid);
 
     return $form;
   }

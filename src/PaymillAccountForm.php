@@ -14,7 +14,7 @@ class PaymillAccountForm extends \Drupal\payment_forms\AccountForm {
     $settings['paymill_payment']['pmid-' . $payment->method->pmid]['method'] = 'account';
     drupal_add_js($settings, 'setting');
     CommonForm::addPaymillBridge($form);
-    CommonForm::addTokenField($form);
+    CommonForm::addTokenField($form, $payment->method->pmid);
 
     return $form;
   }

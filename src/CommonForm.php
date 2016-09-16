@@ -24,11 +24,11 @@ class CommonForm {
           'field_invalid_card_holder'    => t('Invalid card holder'),
           'field_invalid_amount_int'     => t('Invalid amount'),
           'field_invalid_currency'       => t('Invalid currency'),
-          'field_invalid_account_number' => t('Invalid account_number'),
-          'field_invalid_account_holder' => t('Invalid account_holder'),
+          'field_invalid_account_number' => t('Invalid account number'),
+          'field_invalid_account_holder' => t('Invalid account holder'),
           'field_invalid_bank_code'      => t('Invalid bank code'),
-          'field_invalid_iban'           => t('Invalid bic'),
-          'field_invalid_bic'            => t('Invalid bic'),
+          'field_invalid_iban'           => t('Invalid IBAN'),
+          'field_invalid_bic'            => t('Invalid BIC'),
           'field_invalid_country'        => t('Invalid country'),
           'field_invalid_bank_data'      => t('Invalid bank data'),
         )
@@ -44,10 +44,13 @@ class CommonForm {
     drupal_add_js('https://bridge.paymill.com/', 'external');
   }
 
-  public static function addTokenField(&$form) {
+  public static function addTokenField(&$form, $pmid) {
     $form['paymill_payment_token'] = array(
       '#type' => 'hidden',
-      '#attributes' => array('class' => array('paymill-payment-token')),
+      '#attributes' => [
+        'class' => ['paymill-payment-token'],
+        'data-pmid' => $pmid,
+      ],
     );
   }
 
