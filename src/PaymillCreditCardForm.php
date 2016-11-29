@@ -26,8 +26,8 @@ class PaymillCreditCardForm extends \Drupal\payment_forms\CreditCardForm {
     'china_unionpay' => 'CSC (Card Security Code)',
   );
 
-  public function getForm(array &$form, array &$form_state, \Payment $payment) {
-    parent::getForm($form, $form_state, $payment);
+  public function form(array $form, array &$form_state, \Payment $payment) {
+    $form += parent::form($form, $form_state, $payment);
 
     $settings = CommonForm::getSettings($payment);
     $settings['paymill_payment']['pmid-' . $payment->method->pmid]['method'] = 'credit_card';
@@ -38,7 +38,7 @@ class PaymillCreditCardForm extends \Drupal\payment_forms\CreditCardForm {
     return $form;
   }
 
-  public function validateForm(array &$element, array &$form_state, \Payment $payment) {
+  public function validate(array $element, array &$form_state, \Payment $payment) {
     // Paymill takes care of the real validation, client-side.
     CommonForm::addTokenToPaymentMethodData($element, $form_state, $payment);
   }

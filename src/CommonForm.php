@@ -3,6 +3,7 @@
 namespace Drupal\paymill_payment;
 
 class CommonForm {
+
   public static function getSettings($payment) {
     return array(
       'paymill_payment' => array(
@@ -58,4 +59,5 @@ class CommonForm {
     $values = drupal_array_get_nested_value($form_state['values'], $element['#parents']);
     $payment->method_data['paymill_payment_token'] = $values['paymill_payment_token'];
   }
+
 }

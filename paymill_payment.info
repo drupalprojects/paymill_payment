@@ -2,9 +2,9 @@ name = Paymill Payment methods
 description = Provides payment methods to transfer money using the payment provider www.paymill.com
 core = 7.x
 
+dependencies[] = libraries
 dependencies[] = payment
-dependencies[] = payment_forms
-dependencies[] = xautoload
+dependencies[] = payment_forms (>= 7.x-2.0-beta1)
 dependencies[] = webform_paymethod_select
 dependencies[] = webform_ajax
-dependencies[] = libraries
+dependencies[] = xautoload
