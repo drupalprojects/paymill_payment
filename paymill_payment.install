@@ -6,31 +6,23 @@
  */
 
 /**
- * Implements hook_schema()
- *
- * Adds the schema for the paymill_payment_payment_controllers table which
- * stores serialized PaymentMethodController objects.
+ * Enable payment_controller_data and migrate configurations.
  */
-function paymill_payment_schema() {
-  $schema['paymill_payment_payment_method_controller'] = array(
-    'fields' => array(
-      'public_key' => array(
-        'type' => 'text',
-      ),
-      'private_key' => array(
-        'type'     => 'text',
-      ),
-      'pmid' => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
-    ),
-    'primary key' => array('pmid'),
-    'unique keys' => array(
-      'pmid' => array('pmid'),
-    ),
-  );
-  return $schema;
+function paymill_payment_update_7001() {
+  if (!module_enable(['payment_controller_data'])) {
+    throw new DrupalUpdateException('Could not enable payment_controller_data.');
+  }
+
+  $result = db_select('paymill_payment_payment_method_controller', 'd')
+    ->fields('d')
+    ->execute();
+  foreach ($result as $row) {
+    $method = entity_load_single('payment_method', $row->pmid);
+    $method->controller_data = [
+      'private_key' => $row->private_key,
+      'public_key' => $row->public_key,
+    ];
+    entity_save('payment_method', $method);
+  }
+  db_drop_table('paymill_payment_payment_method_controller');
 }
